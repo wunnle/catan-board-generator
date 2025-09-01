@@ -121,30 +121,61 @@ export default function CatanBoardGenerator() {
           </label>
 
           <div className="pip-bounds">
-            <span>Corner scores:</span>
-            <input
-              type="number"
-              min={2}
-              max={13}
-              value={pipMin}
-              onChange={(e) => {
-                const v = Math.max(2, Math.min(13, Number(e.target.value)));
-                setPipMin(Math.min(v, pipMax));
-              }}
-              className="number-input"
-            />
-            <span>≤ score ≤</span>
-            <input
-              type="number"
-              min={2}
-              max={13}
-              value={pipMax}
-              onChange={(e) => {
-                const v = Math.max(2, Math.min(13, Number(e.target.value)));
-                setPipMax(Math.max(v, pipMin));
-              }}
-              className="number-input"
-            />
+            <div className="input-group">
+              <button 
+                className="input-btn" 
+                onClick={() => setPipMin(Math.max(2, pipMin - 1))}
+                disabled={pipMin <= 2}
+              >
+                −
+              </button>
+              <input
+                type="number"
+                min={2}
+                max={6}
+                value={pipMin}
+                onChange={(e) => {
+                  const v = Math.max(2, Math.min(pipMax, Number(e.target.value)));
+                  setPipMin(v);
+                }}
+                className="number-input"
+              />
+              <button 
+                className="input-btn" 
+                onClick={() => setPipMin(Math.min(pipMax, pipMin + 1))}
+                disabled={pipMin >= pipMax}
+              >
+                +
+              </button>
+            </div>
+            <span>≤ corner scores ≤</span>
+            <div className="input-group">
+              <button 
+                className="input-btn" 
+                onClick={() => setPipMax(Math.max(pipMin, pipMax - 1))}
+                disabled={pipMax <= pipMin}
+              >
+                −
+              </button>
+              <input
+                type="number"
+                min={6}
+                max={13}
+                value={pipMax}
+                onChange={(e) => {
+                  const v = Math.max(pipMin, Math.min(13, Number(e.target.value)));
+                  setPipMax(v);
+                }}
+                className="number-input"
+              />
+              <button 
+                className="input-btn" 
+                onClick={() => setPipMax(Math.min(13, pipMax + 1))}
+                disabled={pipMax >= 13}
+              >
+                +
+              </button>
+            </div>
           </div>
         </div>
       </div>
