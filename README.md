@@ -1,6 +1,8 @@
 # Catan Board Generator
 
-🌐 **Website:** https://catan.wunnle.com/
+**Website:** https://catan.wunnle.com/
+
+![Catan Board Generator Preview](preview.jpg)
 
 An interactive **Catan board generator** built with React and Vite.  
 Generates randomized Catan boards with configurable rules, pip constraints, and a violations breakdown.
