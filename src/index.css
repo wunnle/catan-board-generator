@@ -272,3 +272,16 @@ input[type="number"].number-input {
   cursor: not-allowed;
   background: #f3f4f6;
 }
+
+.footer-link {
+  font-size: 0.875rem;
+  color: #6b7280;
+  text-align: left;
+  margin-top: 1rem;
+  width: 100%;
+}
+
+.footer-link a {
+  color: #6b7280;
+  text-decoration: underline;
+}

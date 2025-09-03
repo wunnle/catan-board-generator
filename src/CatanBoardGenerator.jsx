@@ -327,6 +327,13 @@ export default function CatanBoardGenerator() {
             </div>
           </div>
         </details>
+
+        <div className="footer-link">
+          Looking for <strong>Catan Variant: Hidden Pre‑Generated Dice</strong>? <br /> It's moved here:{" "}
+          <a href="https://deterministic-catan.wunnle.com/" target="_blank" rel="noopener noreferrer">
+            deterministic-catan.wunnle.com
+          </a>
+        </div>
       </div>
 
     </>
