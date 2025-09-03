@@ -1,5 +1,7 @@
 # Catan Board Generator
 
+🌐 **Website:** https://catan.wunnle.com/
+
 An interactive **Catan board generator** built with React and Vite.  
 Generates randomized Catan boards with configurable rules, pip constraints, and a violations breakdown.
 
@@ -9,27 +11,17 @@ Generates randomized Catan boards with configurable rules, pip constraints, and 
 
 - **Random board generation**  
   - Independent randomization for **resources** and **numbers**.
-- **Pip score limits**  
-  - Set minimum and maximum total pip probabilities per vertex.
+- **Corner score calculation & capping**  
+  - Calculates pip probability totals for each vertex (corner).
+  - Set minimum and maximum pip score limits to cap corner values.
+  - Ensures balanced resource accessibility across the board.
 - **Hot adjacency detection**  
   - Avoids placing **6** and **8** together when possible.
 - **Optional toggles**  
   - Prevent identical neighboring numbers.
   - Prevent neighboring resources.
   - Keep desert in the center.
-- **Accessible color palette**  
-  - Forest = green  
-  - Hills = red  
-  - Ore = blue-gray  
-  - Fields = yellow  
-  - Pasture = light green  
-  - Desert = white with diagonal stripes.
-- **Violations breakdown**  
-  Displays:
-  - Hot adjacency count.
-  - Identical number neighbors.
-  - Identical resource neighbors.
-  - Pip totals below min / above max.
+- **Accessible color palette**
 
 ---
 
