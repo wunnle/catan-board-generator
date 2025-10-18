@@ -10,6 +10,8 @@ export default function CatanBoardGenerator() {
   const [noSameNeighbors, setNoSameNeighbors] = useState(true);
   const [preventSameResources, setPreventSameResources] = useState(false);
   const [keepDesertCenter, setKeepDesertCenter] = useState(false);
+  import { Analytics } from "@vercel/analytics/next"
+
 
   const [pipMin, setPipMin] = useState(2);
   const [pipMax, setPipMax] = useState(13);
@@ -89,6 +91,7 @@ export default function CatanBoardGenerator() {
 
   return (
     <>
+      <Analytics />
       <div className="container">
         <header className="header">
           <h1 className="title">Catan Board Generator</h1>
