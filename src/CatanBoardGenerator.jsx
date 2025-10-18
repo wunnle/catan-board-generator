@@ -3,6 +3,8 @@ import { COLORS, HOT } from './constants.js';
 import { pipValue } from './utils.js';
 import { COORDS, axialToPixel, hexPolygonPoints, hexCorner } from './hexGrid.js';
 import { generateResources, generateNumbers } from './boardGenerator.js';
+import { Analytics } from "@vercel/analytics/react"
+
 export default function CatanBoardGenerator() {
   const [resourceSeed, setResourceSeed] = useState(() => Math.random());
   const [numberSeed, setNumberSeed] = useState(() => Math.random());
@@ -10,7 +12,6 @@ export default function CatanBoardGenerator() {
   const [noSameNeighbors, setNoSameNeighbors] = useState(true);
   const [preventSameResources, setPreventSameResources] = useState(false);
   const [keepDesertCenter, setKeepDesertCenter] = useState(false);
-  import { Analytics } from "@vercel/analytics/next"
 
 
   const [pipMin, setPipMin] = useState(2);
