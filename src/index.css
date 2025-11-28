@@ -48,6 +48,7 @@ body {
   display: flex;
   gap: 0.5rem;
   flex-wrap: wrap;
+  flex-shrink: 0;
 }
 
 .btn {
@@ -58,6 +59,8 @@ body {
   background: white;
   cursor: pointer;
   transition: box-shadow 0.15s;
+  white-space: nowrap;
+  font-size: 0.875rem;
 }
 
 .btn:hover {

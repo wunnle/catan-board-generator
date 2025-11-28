@@ -141,16 +141,6 @@ export default function CatanBoardGenerator() {
     setNumberSeed(Math.random());
   }
 
-  async function copyLink() {
-    try {
-      await navigator.clipboard.writeText(window.location.href);
-      setCopied(true);
-      setTimeout(() => setCopied(false), 2000);
-    } catch (error) {
-      console.error('Failed to copy link:', error);
-    }
-  }
-
   // Corner scores for rendering
   const vertexMap = new Map();
   centers.forEach(({ x, y }, i) => {
@@ -177,13 +167,6 @@ export default function CatanBoardGenerator() {
               title="Shuffle resources and numbers"
             >
               Regenerate
-            </button>
-            <button
-              className="btn"
-              onClick={copyLink}
-              title="Copy shareable link to clipboard"
-            >
-              {copied ? 'Copied!' : 'Copy Link'}
             </button>
           </div>
         </header>
@@ -285,10 +268,6 @@ export default function CatanBoardGenerator() {
             let fill = baseFill;
             if (tile.resource === "desert") fill = "url(#desertPattern)";
 
-            // Determine if this is an outer edge tile
-            const neighbors = neighborsOf(i);
-            const isOuterEdge = neighbors.length < 6;
-
             // Determine violation styling for tiles
             const hotBad = board.hotTiles.has(i);
             const sameNumBad = board.sameNumTiles.has(i);
@@ -297,7 +276,6 @@ export default function CatanBoardGenerator() {
             // Violation styling priority: hot (red) > same number (orange) > same resource (purple dashed)
             let stroke = "#333";
             let strokeWidth = 1.5;
-            let outerStrokeWidth = 2.5;
             let dash = undefined;
             if (sameResBad) { stroke = "#7B1FA2"; strokeWidth = 2.5; dash = "6 4"; }
             if (sameNumBad) { stroke = "#EF6C00"; strokeWidth = 3; dash = undefined; }
@@ -306,57 +284,6 @@ export default function CatanBoardGenerator() {
             return (
               <g key={i}>
                 <polygon points={poly} fill={fill} stroke={stroke} strokeWidth={strokeWidth} strokeDasharray={dash} />
-                {/* Draw thick outer edges for border tiles */}
-                {isOuterEdge && (() => {
-                  const tileCoord = COORDS[i];
-                  const edges = [];
-                  
-                  // Get all neighbor positions
-                  const neighborCoords = new Set();
-                  for (const [dq, dr] of DIRS) {
-                    const neighborKey = `${tileCoord.q + dq},${tileCoord.r + dr}`;
-                    if (INDEX_BY_COORD.has(neighborKey)) {
-                      const nIdx = INDEX_BY_COORD.get(neighborKey);
-                      neighborCoords.add(`${centers[nIdx].x},${centers[nIdx].y}`);
-                    }
-                  }
-                  
-                  // Check each edge - if the midpoint is not close to any neighbor, it's an outer edge
-                  for (let edgeIdx = 0; edgeIdx < 6; edgeIdx++) {
-                    const corner1 = hexCorner(x, y, size, edgeIdx);
-                    const corner2 = hexCorner(x, y, size, (edgeIdx + 1) % 6);
-                    const midX = (corner1.x + corner2.x) / 2;
-                    const midY = (corner1.y + corner2.y) / 2;
-                    
-                    // Check if this edge midpoint is close to any neighbor center
-                    let isSharedEdge = false;
-                    for (const nIdx of neighbors) {
-                      const nc = centers[nIdx];
-                      const dist = Math.sqrt((midX - nc.x) ** 2 + (midY - nc.y) ** 2);
-                      if (dist < size * 1.2) { // Close enough to be a shared edge
-                        isSharedEdge = true;
-                        break;
-                      }
-                    }
-                    
-                    if (!isSharedEdge) {
-                      // This is an outer edge
-                      edges.push(
-                        <line
-                          key={edgeIdx}
-                          x1={corner1.x}
-                          y1={corner1.y}
-                          x2={corner2.x}
-                          y2={corner2.y}
-                          stroke="#333"
-                          strokeWidth={outerStrokeWidth}
-                          strokeLinecap="round"
-                        />
-                      );
-                    }
-                  }
-                  return edges;
-                })()}
                 {tile.resource !== "desert" && (
                   <g>
                     <circle cx={x} cy={y} r={18} fill="#fff" stroke="#222" strokeWidth={1} />
@@ -375,6 +302,51 @@ export default function CatanBoardGenerator() {
               </g>
             );
           })}
+
+          {/* Draw rounded outer border */}
+          {(() => {
+            const outerEdges = [];
+            board.tiles.forEach((tile, i) => {
+              const neighbors = neighborsOf(i);
+              if (neighbors.length < 6) {
+                const { x, y } = centers[i];
+                for (let edgeIdx = 0; edgeIdx < 6; edgeIdx++) {
+                  const corner1 = hexCorner(x, y, size, edgeIdx);
+                  const corner2 = hexCorner(x, y, size, (edgeIdx + 1) % 6);
+                  const midX = (corner1.x + corner2.x) / 2;
+                  const midY = (corner1.y + corner2.y) / 2;
+                  
+                  let isSharedEdge = false;
+                  for (const nIdx of neighbors) {
+                    const nc = centers[nIdx];
+                    const dist = Math.sqrt((midX - nc.x) ** 2 + (midY - nc.y) ** 2);
+                    if (dist < size * 1.2) {
+                      isSharedEdge = true;
+                      break;
+                    }
+                  }
+                  
+                  if (!isSharedEdge) {
+                    outerEdges.push({ x1: corner1.x, y1: corner1.y, x2: corner2.x, y2: corner2.y });
+                  }
+                }
+              }
+            });
+            
+            return outerEdges.map((edge, idx) => (
+              <line
+                key={idx}
+                x1={edge.x1}
+                y1={edge.y1}
+                x2={edge.x2}
+                y2={edge.y2}
+                stroke="#333"
+                strokeWidth={2.5}
+                strokeLinecap="round"
+                strokeLinejoin="round"
+              />
+            ));
+          })()}
 
           {Array.from(vertexMap.entries()).map(([key, v], idx) => {
             const below = board.pipBelowKeys.has(key);
