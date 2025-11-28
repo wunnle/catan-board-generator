@@ -3,6 +3,30 @@
 // =====================================
 
 /**
+ * Seeded random number generator
+ */
+export function seededRandom(seed) {
+  let state = seed * 2147483647;
+  return function() {
+    state = (state * 16807) % 2147483647;
+    return (state - 1) / 2147483646;
+  };
+}
+
+/**
+ * Shuffle an array using Fisher-Yates algorithm with a seed
+ */
+export function seededShuffle(arr, seed) {
+  const rng = seededRandom(seed);
+  const a = [...arr];
+  for (let i = a.length - 1; i > 0; i--) {
+    const j = Math.floor(rng() * (i + 1));
+    [a[i], a[j]] = [a[j], a[i]];
+  }
+  return a;
+}
+
+/**
  * Shuffle an array using Fisher-Yates algorithm
  */
 export function shuffle(arr) {

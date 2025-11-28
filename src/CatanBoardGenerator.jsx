@@ -1,4 +1,4 @@
-import React, { useMemo, useState } from "react";
+import React, { useMemo, useState, useRef, useEffect } from "react";
 import { COLORS, HOT, PORTS, DIRS } from './constants.js';
 import { pipValue } from './utils.js';
 import { COORDS, axialToPixel, hexPolygonPoints, hexCorner, getSharedVertex, neighborsOf, INDEX_BY_COORD } from './hexGrid.js';
@@ -6,21 +6,83 @@ import { generateResources, generateNumbers } from './boardGenerator.js';
 import { Analytics } from "@vercel/analytics/react"
 import grainSvg from './images/grain.svg';
 
+// URL encoding/decoding helpers
+function encodeStateToURL(state) {
+  const params = new URLSearchParams();
+  
+  // Always encode seeds
+  params.set('rs', state.resourceSeed.toString());
+  params.set('ns', state.numberSeed.toString());
+  
+  // Only encode non-defaults
+  if (state.noSameNeighbors === false) params.set('nsn', '0');
+  if (state.preventSameResources === true) params.set('psr', '1');
+  if (state.keepDesertCenter === true) params.set('kdc', '1');
+  if (state.pipMin !== 2) params.set('pmin', state.pipMin.toString());
+  if (state.pipMax !== 13) params.set('pmax', state.pipMax.toString());
+  
+  return params.toString();
+}
+
+function decodeURLToState() {
+  const params = new URLSearchParams(window.location.search);
+  
+  // Parse seeds with fallback to random
+  const resourceSeed = params.has('rs') ? parseFloat(params.get('rs')) : Math.random();
+  const numberSeed = params.has('ns') ? parseFloat(params.get('ns')) : Math.random();
+  
+  // Parse booleans from "0"/"1" with defaults
+  const noSameNeighbors = params.has('nsn') ? params.get('nsn') === '1' : true;
+  const preventSameResources = params.has('psr') ? params.get('psr') === '1' : false;
+  const keepDesertCenter = params.has('kdc') ? params.get('kdc') === '1' : false;
+  
+  // Parse pip bounds with defaults
+  const pipMin = params.has('pmin') ? parseInt(params.get('pmin'), 10) : 2;
+  const pipMax = params.has('pmax') ? parseInt(params.get('pmax'), 10) : 13;
+  
+  // Validate and return with fallbacks for invalid values
+  return {
+    resourceSeed: isNaN(resourceSeed) ? Math.random() : resourceSeed,
+    numberSeed: isNaN(numberSeed) ? Math.random() : numberSeed,
+    noSameNeighbors,
+    preventSameResources,
+    keepDesertCenter,
+    pipMin: isNaN(pipMin) ? 2 : Math.max(2, Math.min(6, pipMin)),
+    pipMax: isNaN(pipMax) ? 13 : Math.max(6, Math.min(13, pipMax)),
+  };
+}
+
 export default function CatanBoardGenerator() {
-  const [resourceSeed, setResourceSeed] = useState(() => Math.random());
-  const [numberSeed, setNumberSeed] = useState(() => Math.random());
+  const urlState = decodeURLToState();
+  
+  const [resourceSeed, setResourceSeed] = useState(urlState.resourceSeed);
+  const [numberSeed, setNumberSeed] = useState(urlState.numberSeed);
   const [showCornerScores, setShowCornerScores] = useState(false);
-  const [noSameNeighbors, setNoSameNeighbors] = useState(true);
-  const [preventSameResources, setPreventSameResources] = useState(false);
-  const [keepDesertCenter, setKeepDesertCenter] = useState(false);
+  const [noSameNeighbors, setNoSameNeighbors] = useState(urlState.noSameNeighbors);
+  const [preventSameResources, setPreventSameResources] = useState(urlState.preventSameResources);
+  const [keepDesertCenter, setKeepDesertCenter] = useState(urlState.keepDesertCenter);
+  const [copied, setCopied] = useState(false);
 
+  const [pipMin, setPipMin] = useState(urlState.pipMin);
+  const [pipMax, setPipMax] = useState(urlState.pipMax);
 
-  const [pipMin, setPipMin] = useState(2);
-  const [pipMax, setPipMax] = useState(13);
+  // Update URL when state changes
+  useEffect(() => {
+    const newUrl = encodeStateToURL({
+      resourceSeed,
+      numberSeed,
+      noSameNeighbors,
+      preventSameResources,
+      keepDesertCenter,
+      pipMin,
+      pipMax,
+    });
+    window.history.replaceState(null, '', `?${newUrl}`);
+  }, [resourceSeed, numberSeed, noSameNeighbors, preventSameResources, keepDesertCenter, pipMin, pipMax]);
 
   // Layered recompute: resources first, then numbers
   const resLayer = useMemo(
-    () => generateResources({ preventSameResources, keepDesertCenter }),
+    () => generateResources({ preventSameResources, keepDesertCenter, seed: resourceSeed }),
     [resourceSeed, preventSameResources, keepDesertCenter]
   );
 
@@ -30,6 +92,7 @@ export default function CatanBoardGenerator() {
       pipMin,
       pipMax,
       noSameNeighbors,
+      seed: numberSeed,
     }),
     [numberSeed, resLayer.desertIndex, pipMin, pipMax, noSameNeighbors]
   );
@@ -78,6 +141,16 @@ export default function CatanBoardGenerator() {
     setNumberSeed(Math.random());
   }
 
+  async function copyLink() {
+    try {
+      await navigator.clipboard.writeText(window.location.href);
+      setCopied(true);
+      setTimeout(() => setCopied(false), 2000);
+    } catch (error) {
+      console.error('Failed to copy link:', error);
+    }
+  }
+
   // Corner scores for rendering
   const vertexMap = new Map();
   centers.forEach(({ x, y }, i) => {
@@ -104,6 +177,13 @@ export default function CatanBoardGenerator() {
               title="Shuffle resources and numbers"
             >
               Regenerate
+            </button>
+            <button
+              className="btn"
+              onClick={copyLink}
+              title="Copy shareable link to clipboard"
+            >
+              {copied ? 'Copied!' : 'Copy Link'}
             </button>
           </div>
         </header>
@@ -184,6 +264,7 @@ export default function CatanBoardGenerator() {
           </div>
         </div>
       </div>
+      <div>
         <svg
           viewBox={`${minX} ${minY} ${width} ${height}`}
           className="board"
@@ -474,6 +555,7 @@ export default function CatanBoardGenerator() {
             </div>
           </div>
         </details>
+      </div>
 
         <footer className="footer">
           <div className="footer-content">

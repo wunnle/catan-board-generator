@@ -3,17 +3,17 @@
 // =====================================
 
 import { RESOURCE_BAG, TOKENS, HOT } from './constants.js';
-import { shuffle, pipValue } from './utils.js';
+import { shuffle, seededShuffle, pipValue } from './utils.js';
 import { COORDS, CENTER_INDEX, neighborsOf, axialToPixel, hexCorner } from './hexGrid.js';
 
 /**
  * Layer A: Resources (optionally avoid identical neighboring resources; optionally keep desert center)
  */
-export function generateResources({ preventSameResources = false, keepDesertCenter = false }) {
+export function generateResources({ preventSameResources = false, keepDesertCenter = false, seed }) {
   let best = null;
   let safety = 5000;
   while (safety-- > 0) {
-    const resources = shuffle(RESOURCE_BAG);
+    const resources = seed !== undefined ? seededShuffle(RESOURCE_BAG, seed + safety) : shuffle(RESOURCE_BAG);
 
     // If keeping desert at center, swap desert into center index (q=0,r=0)
     if (keepDesertCenter && CENTER_INDEX !== undefined) {
@@ -50,7 +50,7 @@ export function generateResources({ preventSameResources = false, keepDesertCent
 /**
  * Layer B: Numbers (we minimize 6/8 adjacency; optional: noSameNeighbors; pip bounds inclusive)
  */
-export function generateNumbers({ desertIndex, pipMin, pipMax, noSameNeighbors }) {
+export function generateNumbers({ desertIndex, pipMin, pipMax, noSameNeighbors, seed }) {
   const tokenable = COORDS.map((_, i) => i).filter((i) => i !== desertIndex);
   const centersUnit = COORDS.map(({ q, r }) => axialToPixel(q, r, 1));
 
@@ -98,7 +98,7 @@ export function generateNumbers({ desertIndex, pipMin, pipMax, noSameNeighbors }
 
   let best = null;
   let safety = 7000;
-  let bag = shuffle(TOKENS);
+  let bag = seed !== undefined ? seededShuffle(TOKENS, seed) : shuffle(TOKENS);
   while (safety-- > 0) {
     const numbersAt = Array(19).fill(null);
     let t = 0;
@@ -111,7 +111,7 @@ export function generateNumbers({ desertIndex, pipMin, pipMax, noSameNeighbors }
       best = { numbers: numbersAt, ...res };
       if (res.bd.total === 0) break;
     }
-    bag = shuffle(bag);
+    bag = seed !== undefined ? seededShuffle(bag, seed + safety) : shuffle(bag);
   }
   if (!best) {
     const empty = { hotTiles: new Set(), sameNumTiles: new Set(), pipBelowKeys: new Set(), pipAboveKeys: new Set(), bd: { hotAdj: 0, sameNumAdj: 0, pipBelow: 0, pipAbove: 0, total: 0 } };
