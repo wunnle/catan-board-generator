@@ -1,9 +1,10 @@
 import React, { useMemo, useState } from "react";
-import { COLORS, HOT } from './constants.js';
+import { COLORS, HOT, PORTS } from './constants.js';
 import { pipValue } from './utils.js';
-import { COORDS, axialToPixel, hexPolygonPoints, hexCorner } from './hexGrid.js';
+import { COORDS, axialToPixel, hexPolygonPoints, hexCorner, getSharedVertex } from './hexGrid.js';
 import { generateResources, generateNumbers } from './boardGenerator.js';
 import { Analytics } from "@vercel/analytics/react"
+import grainSvg from './images/grain.svg';
 
 export default function CatanBoardGenerator() {
   const [resourceSeed, setResourceSeed] = useState(() => Math.random());
@@ -65,12 +66,12 @@ export default function CatanBoardGenerator() {
   // Normalize viewBox
   const xs = centers.map((c) => c.x);
   const ys = centers.map((c) => c.y);
-  const minX = Math.min(...xs) - size * 1.2;
-  const maxX = Math.max(...xs) + size * 1.2;
-  const minY = Math.min(...ys) - size * 1.2;
-  const maxY = Math.max(...ys) + size * 1.2;
+  const minX = Math.min(...xs) - size * 1.1;
+  const maxX = Math.max(...xs) + size * 1.1;
+  const minY = Math.min(...ys) - size * 1.5;
+  const maxY = Math.max(...ys) + size * 1.4;
   const width = maxX - minX;
-  const height = maxY - minY;
+  const height = maxY - minY + 12;
 
   function regenerateAll() {
     setResourceSeed(Math.random());
@@ -267,6 +268,92 @@ export default function CatanBoardGenerator() {
                   </text>
                 )}
               </g>
+            );
+          })}
+
+          {/* Render Ports */}
+          {PORTS.map((port, idx) => {
+            const v1 = vertexMap.get(port.corner1);
+            const v2 = vertexMap.get(port.corner2);
+            
+            if (!v1 || !v2) return null;
+            
+            const portX = v1.x;
+            const portY = v1.y;
+            const portColor = COLORS[port.type];
+            const portBorder = "#333";
+            
+            return (
+              <g key={`port-${idx}`}>
+                {/* Connector line from corner2 to port */}
+                <line
+                  x1={v2.x}
+                  y1={v2.y + 2}
+                  x2={portX}
+                  y2={portY + 2}
+                  stroke={portColor}
+                  strokeWidth={3}
+                />
+                {/* Port circle */}
+                <circle 
+                  cx={portX} 
+                  cy={portY} 
+                  r={15} 
+                  fill={portColor} 
+                  stroke={portBorder} 
+                  strokeWidth={2}
+                />
+                {/* Port icon */}
+                <image
+                  x={portX - 15}
+                  y={portY - 15}
+                  width={30}
+                  height={30}
+                  href={grainSvg}
+                />
+                {/* Connection point marker */}
+                <circle 
+                  cx={v2.x} 
+                  cy={v2.y + 2} 
+                  r={5} 
+                  fill={portColor} 
+                  stroke={portBorder} 
+                  strokeWidth={1}
+                />
+              </g>
+            );
+          })}
+
+          {/* Debug: Show tile coordinates */}
+          {false && COORDS.map((coord, i) => {
+            const center = axialToPixel(coord.q, coord.r, size);
+            return (
+              <text
+                key={`coord-${i}`}
+                x={center.x}
+                y={center.y - 20}
+                textAnchor="middle"
+                dominantBaseline="middle"
+                style={{ fontSize: '8px', fill: '#666', fontWeight: 'bold' }}
+              >
+                ({coord.q},{coord.r})
+              </text>
+            );
+          })}
+
+          {/* Debug: Show corner coordinates */}
+          {false && Array.from(vertexMap.entries()).map(([key, v], idx) => {
+            return (
+              <text
+                key={`corner-${idx}`}
+                x={v.x + 8}
+                y={v.y + 3}
+                textAnchor="start"
+                dominantBaseline="middle"
+                style={{ fontSize: '6px', fill: '#e74c3c', fontWeight: 'bold' }}
+              >
+                {key}
+              </text>
             );
           })}
         </svg>

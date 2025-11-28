@@ -127,6 +127,15 @@ input[type="number"].number-input {
   dominant-baseline: middle;
 }
 
+.port-text {
+  font-size: 11px;
+  font-weight: 700;
+  text-anchor: middle;
+  dominant-baseline: middle;
+  pointer-events: none;
+  user-select: none;
+}
+
 .breakdown {
   width: 100%;
   margin-top: 0.5rem;

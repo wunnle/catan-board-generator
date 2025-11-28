@@ -65,3 +65,49 @@ export function hexCorner(cx, cy, size, k) {
   const angle = (Math.PI / 180) * (60 * k + 30);
   return { x: cx + size * Math.cos(angle), y: cy + size * Math.sin(angle) };
 }
+
+/**
+ * Get the midpoint between two adjacent hex centers
+ */
+export function getMidpoint(x1, y1, x2, y2) {
+  return { x: (x1 + x2) / 2, y: (y1 + y2) / 2 };
+}
+
+/**
+ * Find the shared vertex (corner) between two adjacent hexagons
+ * Returns the vertex position that both hexes share
+ */
+export function getSharedVertex(center1, center2, size) {
+  // Get all corners of both hexes
+  const corners1 = [];
+  const corners2 = [];
+  
+  for (let k = 0; k < 6; k++) {
+    corners1.push(hexCorner(center1.x, center1.y, size, k));
+    corners2.push(hexCorner(center2.x, center2.y, size, k));
+  }
+  
+  // Find the two corners that are closest between the two hexes (they share 2 vertices)
+  // We'll take the one that's furthest from both centers (outer vertex)
+  let maxDistSum = -1;
+  let outerVertex = null;
+  
+  for (const c1 of corners1) {
+    for (const c2 of corners2) {
+      const dist = Math.sqrt((c1.x - c2.x) ** 2 + (c1.y - c2.y) ** 2);
+      if (dist < 1) { // Same vertex (within tolerance)
+        // Calculate distance from both centers
+        const d1 = Math.sqrt((c1.x - center1.x) ** 2 + (c1.y - center1.y) ** 2);
+        const d2 = Math.sqrt((c1.x - center2.x) ** 2 + (c1.y - center2.y) ** 2);
+        const distSum = d1 + d2;
+        
+        if (distSum > maxDistSum) {
+          maxDistSum = distSum;
+          outerVertex = c1;
+        }
+      }
+    }
+  }
+  
+  return outerVertex;
+}
