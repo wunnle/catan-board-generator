@@ -276,7 +276,7 @@ export default function CatanBoardGenerator() {
             </pattern>
           </defs>
 
-          <rect x={minX} y={minY} width={width} height={height} fill="#f5f5f5" rx={12} />
+          <rect x={minX} y={minY} width={width} height={height} fill="#ffffff" rx={12} />
 
           {board.tiles.map((tile, i) => {
             const { x, y } = centers[i];
