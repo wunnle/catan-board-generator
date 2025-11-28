@@ -1,7 +1,7 @@
 import React, { useMemo, useState } from "react";
-import { COLORS, HOT, PORTS } from './constants.js';
+import { COLORS, HOT, PORTS, DIRS } from './constants.js';
 import { pipValue } from './utils.js';
-import { COORDS, axialToPixel, hexPolygonPoints, hexCorner, getSharedVertex } from './hexGrid.js';
+import { COORDS, axialToPixel, hexPolygonPoints, hexCorner, getSharedVertex, neighborsOf, INDEX_BY_COORD } from './hexGrid.js';
 import { generateResources, generateNumbers } from './boardGenerator.js';
 import { Analytics } from "@vercel/analytics/react"
 import grainSvg from './images/grain.svg';
@@ -204,6 +204,10 @@ export default function CatanBoardGenerator() {
             let fill = baseFill;
             if (tile.resource === "desert") fill = "url(#desertPattern)";
 
+            // Determine if this is an outer edge tile
+            const neighbors = neighborsOf(i);
+            const isOuterEdge = neighbors.length < 6;
+
             // Determine violation styling for tiles
             const hotBad = board.hotTiles.has(i);
             const sameNumBad = board.sameNumTiles.has(i);
@@ -212,6 +216,7 @@ export default function CatanBoardGenerator() {
             // Violation styling priority: hot (red) > same number (orange) > same resource (purple dashed)
             let stroke = "#333";
             let strokeWidth = 1.5;
+            let outerStrokeWidth = 2.5;
             let dash = undefined;
             if (sameResBad) { stroke = "#7B1FA2"; strokeWidth = 2.5; dash = "6 4"; }
             if (sameNumBad) { stroke = "#EF6C00"; strokeWidth = 3; dash = undefined; }
@@ -220,6 +225,57 @@ export default function CatanBoardGenerator() {
             return (
               <g key={i}>
                 <polygon points={poly} fill={fill} stroke={stroke} strokeWidth={strokeWidth} strokeDasharray={dash} />
+                {/* Draw thick outer edges for border tiles */}
+                {isOuterEdge && (() => {
+                  const tileCoord = COORDS[i];
+                  const edges = [];
+                  
+                  // Get all neighbor positions
+                  const neighborCoords = new Set();
+                  for (const [dq, dr] of DIRS) {
+                    const neighborKey = `${tileCoord.q + dq},${tileCoord.r + dr}`;
+                    if (INDEX_BY_COORD.has(neighborKey)) {
+                      const nIdx = INDEX_BY_COORD.get(neighborKey);
+                      neighborCoords.add(`${centers[nIdx].x},${centers[nIdx].y}`);
+                    }
+                  }
+                  
+                  // Check each edge - if the midpoint is not close to any neighbor, it's an outer edge
+                  for (let edgeIdx = 0; edgeIdx < 6; edgeIdx++) {
+                    const corner1 = hexCorner(x, y, size, edgeIdx);
+                    const corner2 = hexCorner(x, y, size, (edgeIdx + 1) % 6);
+                    const midX = (corner1.x + corner2.x) / 2;
+                    const midY = (corner1.y + corner2.y) / 2;
+                    
+                    // Check if this edge midpoint is close to any neighbor center
+                    let isSharedEdge = false;
+                    for (const nIdx of neighbors) {
+                      const nc = centers[nIdx];
+                      const dist = Math.sqrt((midX - nc.x) ** 2 + (midY - nc.y) ** 2);
+                      if (dist < size * 1.2) { // Close enough to be a shared edge
+                        isSharedEdge = true;
+                        break;
+                      }
+                    }
+                    
+                    if (!isSharedEdge) {
+                      // This is an outer edge
+                      edges.push(
+                        <line
+                          key={edgeIdx}
+                          x1={corner1.x}
+                          y1={corner1.y}
+                          x2={corner2.x}
+                          y2={corner2.y}
+                          stroke="#333"
+                          strokeWidth={outerStrokeWidth}
+                          strokeLinecap="round"
+                        />
+                      );
+                    }
+                  }
+                  return edges;
+                })()}
                 {tile.resource !== "desert" && (
                   <g>
                     <circle cx={x} cy={y} r={18} fill="#fff" stroke="#222" strokeWidth={1} />
