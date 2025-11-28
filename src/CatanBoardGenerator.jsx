@@ -328,7 +328,7 @@ export default function CatanBoardGenerator() {
           })}
 
           {/* Render Ports */}
-          {PORTS.map((port, idx) => {
+          {!showCornerScores && PORTS.map((port, idx) => {
             const v1 = vertexMap.get(port.corner1);
             const v2 = vertexMap.get(port.corner2);
             
