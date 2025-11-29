@@ -11,9 +11,9 @@ import { COORDS, CENTER_INDEX, neighborsOf, axialToPixel, hexCorner } from './he
  */
 export function generateResources({ preventSameResources = false, keepDesertCenter = false, seed }) {
   let best = null;
-  let safety = 5000;
+  let safety = 20000;
   while (safety-- > 0) {
-    const resources = seed !== undefined ? seededShuffle(RESOURCE_BAG, seed + safety) : shuffle(RESOURCE_BAG);
+    const resources = shuffle(RESOURCE_BAG);
 
     // If keeping desert at center, swap desert into center index (q=0,r=0)
     if (keepDesertCenter && CENTER_INDEX !== undefined) {
@@ -98,7 +98,7 @@ export function generateNumbers({ desertIndex, pipMin, pipMax, noSameNeighbors, 
 
   let best = null;
   let safety = 7000;
-  let bag = seed !== undefined ? seededShuffle(TOKENS, seed) : shuffle(TOKENS);
+  let bag = shuffle(TOKENS);
   while (safety-- > 0) {
     const numbersAt = Array(19).fill(null);
     let t = 0;
@@ -111,7 +111,7 @@ export function generateNumbers({ desertIndex, pipMin, pipMax, noSameNeighbors, 
       best = { numbers: numbersAt, ...res };
       if (res.bd.total === 0) break;
     }
-    bag = seed !== undefined ? seededShuffle(bag, seed + safety) : shuffle(bag);
+    bag = shuffle(bag);
   }
   if (!best) {
     const empty = { hotTiles: new Set(), sameNumTiles: new Set(), pipBelowKeys: new Set(), pipAboveKeys: new Set(), bd: { hotAdj: 0, sameNumAdj: 0, pipBelow: 0, pipAbove: 0, total: 0 } };
