@@ -209,7 +209,7 @@ export default function CatanBoardGenerator() {
 
             // Violation styling priority: hot (red) > same number (orange) > same resource (purple dashed)
             let stroke = "#333";
-            let strokeWidth = 1.5;
+            let strokeWidth = 2;
             let dash = undefined;
             if (sameResBad) { stroke = "#7B1FA2"; strokeWidth = 2.5; dash = "6 4"; }
             if (sameNumBad) { stroke = "#EF6C00"; strokeWidth = 3; dash = undefined; }
@@ -236,51 +236,6 @@ export default function CatanBoardGenerator() {
               </g>
             );
           })}
-
-          {/* Draw rounded outer border */}
-          {(() => {
-            const outerEdges = [];
-            board.tiles.forEach((tile, i) => {
-              const neighbors = neighborsOf(i);
-              if (neighbors.length < 6) {
-                const { x, y } = centers[i];
-                for (let edgeIdx = 0; edgeIdx < 6; edgeIdx++) {
-                  const corner1 = hexCorner(x, y, size, edgeIdx);
-                  const corner2 = hexCorner(x, y, size, (edgeIdx + 1) % 6);
-                  const midX = (corner1.x + corner2.x) / 2;
-                  const midY = (corner1.y + corner2.y) / 2;
-                  
-                  let isSharedEdge = false;
-                  for (const nIdx of neighbors) {
-                    const nc = centers[nIdx];
-                    const dist = Math.sqrt((midX - nc.x) ** 2 + (midY - nc.y) ** 2);
-                    if (dist < size * 1.2) {
-                      isSharedEdge = true;
-                      break;
-                    }
-                  }
-                  
-                  if (!isSharedEdge) {
-                    outerEdges.push({ x1: corner1.x, y1: corner1.y, x2: corner2.x, y2: corner2.y });
-                  }
-                }
-              }
-            });
-            
-            return outerEdges.map((edge, idx) => (
-              <line
-                key={idx}
-                x1={edge.x1}
-                y1={edge.y1}
-                x2={edge.x2}
-                y2={edge.y2}
-                stroke="#333"
-                strokeWidth={2.5}
-                strokeLinecap="round"
-                strokeLinejoin="round"
-              />
-            ));
-          })()}
 
           {Array.from(vertexMap.entries()).map(([key, v], idx) => {
             const below = board.pipBelowKeys.has(key);
