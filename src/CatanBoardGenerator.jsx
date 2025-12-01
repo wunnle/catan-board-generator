@@ -1,4 +1,4 @@
-import React, { useMemo, useState } from "react";
+import React, { useMemo, useRef, useState } from "react";
 import { COLORS, HOT, PORTS, DIRS } from './constants.js';
 import { pipValue } from './utils.js';
 import { COORDS, axialToPixel, hexPolygonPoints, hexCorner, getSharedVertex, neighborsOf, INDEX_BY_COORD } from './hexGrid.js';
@@ -15,6 +15,9 @@ export default function CatanBoardGenerator() {
   const [copied, setCopied] = useState(false);
   const [pipMin, setPipMin] = useState(2);
   const [pipMax, setPipMax] = useState(13);
+  const [tooltip, setTooltip] = useState({ visible: false, x: 0, y: 0, text: "" });
+  const boardWrapRef = useRef(null);
+  const tooltipTimerRef = useRef(null);
 
   // Layered recompute: resources first, then numbers
   const resLayer = useMemo(
@@ -192,7 +195,7 @@ export default function CatanBoardGenerator() {
           </div>
         </div>
       </div>
-      <div>
+      <div className="board-wrap" ref={boardWrapRef}>
         <svg
           viewBox={`${minX} ${minY} ${width} ${height}`}
           className="board"
@@ -291,9 +294,56 @@ export default function CatanBoardGenerator() {
             const portY = v1.y;
             const portColor = COLORS[port.type];
             const portBorder = "#333";
+            const tooltipText = `${port.type.charAt(0).toUpperCase()}${port.type.slice(1)} Port (2:1)`;
             
             return (
-              <g key={`port-${idx}`}>
+              <g
+                key={`port-${idx}`}
+                onMouseEnter={(e) => {
+                  const rect = boardWrapRef.current?.getBoundingClientRect();
+                  if (!rect) return;
+                  setTooltip({
+                    visible: true,
+                    x: e.clientX - rect.left,
+                    y: e.clientY - rect.top,
+                    text: tooltipText,
+                  });
+                }}
+                onMouseMove={(e) => {
+                  const rect = boardWrapRef.current?.getBoundingClientRect();
+                  if (!rect) return;
+                  setTooltip((t) => ({ ...t, x: e.clientX - rect.left, y: e.clientY - rect.top }));
+                }}
+                onMouseLeave={() => setTooltip((t) => ({ ...t, visible: false }))}
+                onTouchStart={(e) => {
+                  const touch = e.touches && e.touches[0];
+                  const rect = boardWrapRef.current?.getBoundingClientRect();
+                  if (!touch || !rect) return;
+                  if (tooltipTimerRef.current) clearTimeout(tooltipTimerRef.current);
+                  setTooltip({
+                    visible: true,
+                    x: touch.clientX - rect.left,
+                    y: touch.clientY - rect.top,
+                    text: tooltipText,
+                  });
+                }}
+                onTouchMove={(e) => {
+                  const touch = e.touches && e.touches[0];
+                  const rect = boardWrapRef.current?.getBoundingClientRect();
+                  if (!touch || !rect) return;
+                  setTooltip((t) => ({ ...t, x: touch.clientX - rect.left, y: touch.clientY - rect.top }));
+                }}
+                onTouchEnd={() => {
+                  if (tooltipTimerRef.current) clearTimeout(tooltipTimerRef.current);
+                  tooltipTimerRef.current = setTimeout(() => {
+                    setTooltip((t) => ({ ...t, visible: false }));
+                  }, 1500);
+                }}
+                onTouchCancel={() => {
+                  if (tooltipTimerRef.current) clearTimeout(tooltipTimerRef.current);
+                  setTooltip((t) => ({ ...t, visible: false }));
+                }}
+              >
                 {/* Connector line from corner2 to port */}
                 <line
                   x1={v2.x}
@@ -302,6 +352,7 @@ export default function CatanBoardGenerator() {
                   y2={portY + 2}
                   stroke={portColor}
                   strokeWidth={3}
+                  aria-label={tooltipText}
                 />
                 {/* Port circle */}
                 <circle 
@@ -311,6 +362,7 @@ export default function CatanBoardGenerator() {
                   fill={portColor} 
                   stroke={portBorder} 
                   strokeWidth={2}
+                  aria-label={tooltipText}
                 />
                 {/* Port icon */}
                 <image
@@ -319,6 +371,7 @@ export default function CatanBoardGenerator() {
                   width={30}
                   height={30}
                   href={grainSvg}
+                  aria-label={tooltipText}
                 />
                 {/* Connection point marker */}
                 <circle 
@@ -328,6 +381,7 @@ export default function CatanBoardGenerator() {
                   fill={portColor} 
                   stroke={portBorder} 
                   strokeWidth={1}
+                  aria-label={tooltipText}
                 />
               </g>
             );
@@ -366,6 +420,15 @@ export default function CatanBoardGenerator() {
             );
           })}
         </svg>
+        {tooltip.visible && (
+          <div
+            className="tooltip"
+            style={{ left: Math.round(tooltip.x + 12), top: Math.round(tooltip.y + 12) }}
+            role="tooltip"
+          >
+            {tooltip.text}
+          </div>
+        )}
       <div className="container">
         <div className="resource-legend">
           {Object.entries(COLORS).map(([res, color]) => (

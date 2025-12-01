@@ -185,6 +185,37 @@ input[type="number"].number-input {
   margin-top: 0.25rem;
 }
 
+/* Board wrapper for positioning tooltips */
+.board-wrap {
+  position: relative;
+  width: 600px;
+  max-width: 100%;
+  margin: 0 auto;
+}
+
+/* Custom tooltip styling */
+.tooltip {
+  position: absolute;
+  background: rgba(17, 24, 39, 0.95);
+  color: #fff;
+  padding: 6px 8px;
+  border-radius: 6px;
+  font-size: 12px;
+  line-height: 1;
+  pointer-events: none;
+  white-space: nowrap;
+  box-shadow: 0 6px 16px rgba(0,0,0,0.18);
+  transform: translate(-50%, 8px);
+}
+
+@media (max-width: 640px) {
+  .tooltip {
+    font-size: 13px;
+    padding: 8px 10px;
+    transform: translate(-50%, 12px);
+  }
+}
+
 .legend-grid {
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
