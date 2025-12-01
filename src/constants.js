@@ -40,5 +40,5 @@ export const HOT = new Set([6, 8]);
 // Static port placements
 // Port positioned between two corner coordinates
 export const PORTS = [
-  { corner1: "0,4", corner2: "0.9,3.5", type: "wheat" }
+  { corner1: "0,4", corner2: "-0.9,3.5", type: "wheat" }
 ];
