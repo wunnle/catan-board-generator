@@ -88,6 +88,18 @@ body {
   color: rgb(107 114 128);
 }
 
+.pip-label {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border-width: 0;
+}
+
 .number-input {
   width: 2rem;
   border: 1px solid #d1d5db;

@@ -91,19 +91,20 @@ export default function CatanBoardGenerator() {
   return (
     <>
       <Analytics />
-      <div className="container">
-        <header className="header">
-          <h1 className="title">Catan Board Generator</h1>
-          <div className="button-group">
-            <button
-              className="btn"
-              onClick={regenerateAll}
-              title="Shuffle resources and numbers"
-            >
-              Regenerate
-            </button>
-          </div>
-        </header>
+      <main>
+        <div className="container">
+          <header className="header">
+            <h1 className="title">Catan Board Generator</h1>
+            <div className="button-group">
+              <button
+                className="btn"
+                onClick={regenerateAll}
+                title="Shuffle resources and numbers"
+              >
+                Regenerate
+              </button>
+            </div>
+          </header>
         <div className="controls">
           <label className="checkbox-label">
             <input type="checkbox" checked={noSameNeighbors} onChange={(e) => setNoSameNeighbors(e.target.checked)} />
@@ -123,15 +124,18 @@ export default function CatanBoardGenerator() {
           </label>
 
           <div className="pip-bounds">
+            <label htmlFor="pipMin" className="pip-label">Minimum corner score:</label>
             <div className="input-group">
               <button 
                 className="input-btn" 
                 onClick={() => setPipMin(Math.max(2, pipMin - 1))}
                 disabled={pipMin <= 2}
+                aria-label="Decrease minimum corner score"
               >
                 −
               </button>
               <input
+                id="pipMin"
                 type="number"
                 min={2}
                 max={6}
@@ -141,25 +145,30 @@ export default function CatanBoardGenerator() {
                   setPipMin(v);
                 }}
                 className="number-input"
+                aria-label="Minimum corner score"
               />
               <button 
                 className="input-btn" 
                 onClick={() => setPipMin(Math.min(pipMax, pipMin + 1))}
                 disabled={pipMin >= pipMax}
+                aria-label="Increase minimum corner score"
               >
                 +
               </button>
             </div>
             <span>≤ corner scores ≤</span>
+            <label htmlFor="pipMax" className="pip-label">Maximum corner score:</label>
             <div className="input-group">
               <button 
                 className="input-btn" 
                 onClick={() => setPipMax(Math.max(pipMin, pipMax - 1))}
                 disabled={pipMax <= pipMin}
+                aria-label="Decrease maximum corner score"
               >
                 −
               </button>
               <input
+                id="pipMax"
                 type="number"
                 min={6}
                 max={13}
@@ -169,11 +178,13 @@ export default function CatanBoardGenerator() {
                   setPipMax(v);
                 }}
                 className="number-input"
+                aria-label="Maximum corner score"
               />
               <button 
                 className="input-btn" 
                 onClick={() => setPipMax(Math.min(13, pipMax + 1))}
                 disabled={pipMax >= 13}
+                aria-label="Increase maximum corner score"
               >
                 +
               </button>
@@ -471,7 +482,7 @@ export default function CatanBoardGenerator() {
           </div>
         </footer>
       </div>
-
+      </main>
     </>
   );
 }
